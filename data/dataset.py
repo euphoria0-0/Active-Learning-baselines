@@ -85,7 +85,7 @@ class Dataset:
 
         for x in ['train', 'test']:
             data = train['Trn'][0][0] if x == 'train' else test['Tst'][0][0]
-            imgs, labels = (self.data[1], self.data[0]) if self.data == 'FashionMNIST' else (self.data[0], self.data[1])
+            imgs, labels = (data[1], data[0]) if self.data == 'FashionMNIST' else (data[0], data[1])
             labels = np.argmax(labels, 1)
             imgs, labels = Tensor(imgs), Tensor(labels)
             if combine:
@@ -150,14 +150,14 @@ class Dataset:
         self.train_transform = T.Compose(add_transform + base_transform)
 
 
-    def __getitem__(self, index, phase='train'):
-        if isinstance(index, np.float64):
-            index = index.astype(np.int64)
-        data, target = self.dataset[phase][index]
-        return data, target, index
+    #def __getitem__(self, index, phase='train'):
+    #    if isinstance(index, np.float64):
+    #        index = index.astype(np.int64)
+    #    data, target = self.dataset[phase][index]
+    #    return data, target, index
 
-    def __len__(self, phase='train'):
-        return len(self.dataset[phase])
+    #def __len__(self, phase='train'):
+    #    return len(self.dataset[phase])
 
 
 
