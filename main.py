@@ -13,7 +13,6 @@ import torch
 from model import mlp, resnet, lossnet
 from AL_Trainer import Trainer
 from data.dataset import Dataset
-import activelearner as al
 
 
 
@@ -32,7 +31,7 @@ def get_args():
     parser.add_argument('--num_trial', type=int, default=10, help='number of trials')
     parser.add_argument('--num_epoch', type=int, default=100, help='number of epochs')
 
-    parser.add_argument('--batch_size', type=int, default=30, help='Batch size used for training only')
+    parser.add_argument('--batch_size','-b', type=int, default=30, help='Batch size used for training only')
     parser.add_argument('--data_size', help='number of points at each round', type=list,
                         default=[600,800,1000,2000,3000,4000,5000,6000,7000,8000,9000,10000,11000,12000,13000,14000,15000])
 
@@ -43,10 +42,12 @@ def get_args():
                         help='optimizer')
     parser.add_argument('--milestone', type=int, default=160, help='number of acquisition')
 
-    parser.add_argument('--epochl', type=int, default=120,
+    parser.add_argument('--epoch_loss', type=int, default=120,
                         help='After 120 epochs, stop the gradient from the loss prediction module propagated to the target model')
     parser.add_argument('--margin', type=float, default=1.0, help='MARGIN')
-    parser.add_argument('--weights', '--w', type=float, default=0.0, help='weight')
+    parser.add_argument('--weights','-w', type=float, default=0.0, help='weight')
+
+    parser.add_argument('--subset', type=int, default=10000, help='subset for learning loss')
 
     parser.add_argument('--fix_seed', action='store_true', default=False, help='fix seed for reproducible')
     parser.add_argument('--seed', type=int, default=0, help='seed number')
@@ -72,7 +73,8 @@ def active_learning_method(al_method):
         from activelearner.random import RandomSampling
         return RandomSampling
     elif al_method == 'learningloss':
-        return al.learningloss.LearningLoss
+        from activelearner.learningloss import LearningLoss
+        return LearningLoss
     elif al_method == 'coreset':
         return CoreSet
     elif al_method == 'badge':
@@ -98,14 +100,15 @@ dataset_name = {'CIFAR10': 'CIFAR10', 'CIFAR100': 'CIFAR100',
 if __name__ == '__main__':
     # set up
     args = get_args()
-
     args.dataset = dataset_name[args.dataset.upper()]
+
     tmp = '-ftrs' if args.use_features else ''
-    run = wandb.init(
+    wandb.init(
         project=f'AL-{args.dataset}{tmp}',
-        name=f"{args.al_method}-{args.optimizer},{args.num_epoch},{args.lr}",
+        name=f"{args.al_method}",#-{args.optimizer},{args.num_epoch},{args.lr}",
         config=args
     )
+
     args.device = torch.device(f"cuda:{args.gpu_id}" if torch.cuda.is_available() else "cpu")
     torch.cuda.set_device(args.device)  # change allocation of current GPU
     print(f'Current cuda device: {torch.cuda.current_device()}')
@@ -115,11 +118,12 @@ if __name__ == '__main__':
     args.nClass = dataset.nClass
     args.nTrain, args.nTest = dataset.nTrain, dataset.nTest
     dataset = dataset.dataset
-    print(f'Dataset: {args.dataset} Train {args.nTrain} = \
-            Labeled {args.data_size[0]} + Unlabeled {args.nTrain - args.data_size[0]}')
+    print(f'Dataset: {args.dataset}')
+    print(f'Train {args.nTrain} = Labeled {args.data_size[0]} + Unlabeled {args.nTrain - args.data_size[0]}')
 
-    # save result
-    args.results = []
+    # save results
+    table = wandb.Table(columns=['Trial','nLabeled', 'TestAcc'])
+
     for trial in range(args.num_trial):
         print(f'>> TRIAL {trial+1}')
 
@@ -131,9 +135,9 @@ if __name__ == '__main__':
             nLabeled = args.data_size[round]
             if round < len(args.data_size) - 1:
                 nQuery = args.data_size[round+1] - args.data_size[round]
-                print(f'>> round {round+1} Labeled {nLabeled} Query {nQuery}')
+                print(f'> round {round+1} Labeled {nLabeled} Query {nQuery}')
             else:
-                print(f'>> round {round+1} Labeled {nLabeled}')
+                print(f'> round {round+1} Labeled {nLabeled}')
 
             # set model
             model = create_model(args)
@@ -150,16 +154,20 @@ if __name__ == '__main__':
                 labeled_indices, unlabeled_indices = AL_method.query(nQuery, trainer.model)
 
             ## save results
-            results.append([nLabeled, test_acc])
+            results.append(test_acc)
+            table.add_data(trial, nLabeled, test_acc)
+
+            wandb.log({
+                f'Test/Acc-{trial+1}': test_acc
+            })
 
         args.results.append(results)
 
-    table = wandb.Table(data=torch.mean(torch.tensor(args.results), dim=1).tolist(),
-                        columns=['nLabeled', 'TestAcc'])
-    wandb.log({'acc plot': wandb.plot.line(table, 'nLabeled', 'TestAcc',
-                                           title=f'mean TestAcc on {args.dataset}')})
+    for acc in torch.mean(torch.tensor(args.results), dim=0).tolist():
+        wandb.log({
+            'Result/meanTestAcc': acc
+        })
 
-
-
-
-
+    artifacts = wandb.Artifact(f'{args.dataset}_{args.al_method}_results', type='predictions')
+    artifacts.add(table, 'test_results')
+    wandb.log_artifact(artifacts)

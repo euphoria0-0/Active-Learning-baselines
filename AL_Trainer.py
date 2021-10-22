@@ -9,7 +9,7 @@ from copy import deepcopy
 
 class Trainer:
     def __init__(self, model, dataloaders, args):
-        self.model = model.to(args.device)
+        self.model = model
         self.dataloaders = dataloaders
         self.device = args.device
         self.num_epoch = args.num_epoch
@@ -20,24 +20,32 @@ class Trainer:
         # loss function
         self.criterion = nn.CrossEntropyLoss().to(self.device)
 
-        # optimizer
-        if args.optimizer == 'sgd':
-            self.optimizer = optim.SGD(model.parameters(), lr=args.lr, weight_decay=args.wdecay)
-        else:
-            self.optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.wdecay)
+        if self.al_method != 'learningloss':
+            self.model = self.model.to(self.device)
+            # optimizer
+            if args.optimizer == 'sgd':
+                self.optimizer = optim.SGD(self.model.parameters(), lr=args.lr, weight_decay=args.wdecay)
+            else:
+                self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr, weight_decay=args.wdecay)
 
-        # learning rate scheduler
-        if args.lr_scheduler == 'multistep':
-            self.lr_scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=[args.milestone])
+            # learning rate scheduler
+            if args.lr_scheduler == 'multistep':
+                self.lr_scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=[args.milestone])
+            else:
+                self.lr_scheduler = optim.lr_scheduler.StepLR(self.optimizer, step_size=10, gamma=0.9)
         else:
-            self.lr_scheduler = optim.lr_scheduler.StepLR(self.optimizer, step_size=10, gamma=0.9)
+            self.model = {'backbone': self.model['backbone'].to(self.device),
+                          'module': self.model['module'].to(self.device)}
+            self.optimizer = {
+                'backbone': optim.SGD(self.model['backbone'].parameters(), lr=args.lr, weight_decay=args.wdecay),
+                'module': optim.SGD(self.model['module'].parameters(), lr=args.lr, weight_decay=args.wdecay)}
+            self.lr_scheduler = {
+                'backbone': optim.lr_scheduler.StepLR(self.optimizer['backbone'], step_size=10, gamma=0.9),
+                'module': optim.lr_scheduler.StepLR(self.optimizer['module'], step_size=10, gamma=0.9)}
 
 
     def train(self):
         if self.al_method == 'learningloss':
-            self.optimizer = {'backbone': self.optimizer, 'module': deepcopy(self.optimizer)}
-            self.lr_scheduler = {'backbone': self.lr_scheduler, 'module': deepcopy(self.lr_scheduler)}
-
             self.model['backbone'].train()
             self.model['module'].train()
 
