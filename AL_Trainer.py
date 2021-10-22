@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
-from tqdm import tqdm
+#from tqdm import tqdm
 from copy import deepcopy
 
 
@@ -48,7 +48,7 @@ class Trainer:
 
             for epoch in range(self.num_epoch):
                 train_acc = self.train_epoch(epoch)
-        print()
+        
         return train_acc
 
     def train_epoch(self, epoch):
