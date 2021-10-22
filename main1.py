@@ -1,11 +1,18 @@
+'''
+Active Learning baselines
 
+References:
+    https://github.com/ej0cl6/deep-active-learning
+    https://github.com/Mephisto405/Learning-Loss-for-Active-Learning
+'''
 import os
 import wandb
 import argparse
 import torch
 
-from data import reddit, federated_emnist
-from model import mlp, resnet
+from model import mlp, resnet, lossnet
+from AL_Trainer import Trainer
+from data.dataset import Dataset
 
 
 
@@ -19,6 +26,7 @@ def get_args():
     parser.add_argument('--dataset', help='dataset', type=str, default='CIFAR10')
     parser.add_argument('--data_dir', help='data path', type=str, default='../dataset/')
     parser.add_argument('--use_features', action='store_true', default=True, help='use feature extracted from ImageNet')
+    parser.add_argument('--pretrained', action='store_true', default=True, help='use feature extracted from ImageNet')
 
     parser.add_argument('--num_trial', type=int, default=10, help='number of trials')
     parser.add_argument('--num_epoch', type=int, default=100, help='number of epochs')
@@ -43,16 +51,22 @@ def load_data(args):
         if args.al_method == 'VAAL':
             return 1
         else:
-            return 2
+            return data.get_features()
     else:
         return 0
 
 
 def create_model(args):
-    if args.use_features:
-        return mlp.MLP(num_classes=args.num_classes, model=args.al_method)
+    mlp_model = mlp.MLP(num_classes=args.nClass, model=args.al_method).to(args.device)
+    resnet_model = resnet.ResNet18(num_classes=args.nClass).to(args.device)
+
+    if args.al_method == 'learningloss':
+        return {'backbone': mlp_model if args.use_features else resnet_model,
+                'module': lossnet.LossNet().to(args.device)}
+    elif args.use_features:
+        return mlp_model
     else:
-        return resnet.ResNet18(num_classes=args.num_classes)
+        return resnet_model
 
 
 def active_learning_method(args):
@@ -71,14 +85,18 @@ def active_learning_method(args):
     else:
         return 1
 
+dataset_name = {'CIFAR10': 'CIFAR10', 'CIFAR100': 'CIFAR100',
+                'FASHIONMNIST': 'FashionMNIST', 'CALTECH256': 'Caltech256'}
 
 
 if __name__ == '__main__':
     # set up
     args = get_args()
+
+    args.dataset = dataset_name[args.dataset.upper()]
     wandb.init(
         project=f'AL-{args.dataset}-{args.use_features}',
-        name=f"{args.al_method}-{args.optimizer}-{args.num_epoch}-{args.lr}-{args.wdecay}",
+        name=f"{args.al_method}-{args.optimizer},{args.num_epoch},{args.lr},{args.wdecay}",
         config=args
     )
     args.device = torch.device(f"cuda:{args.gpu_id}" if torch.cuda.is_available() else "cpu")
@@ -86,12 +104,17 @@ if __name__ == '__main__':
     print('Current cuda device: {}'.format(torch.cuda.current_device()))
 
     # set data
-    data = load_data(args)
-    args.num_classes = data.num_classes
-    dataset = data.dataset
+    dataset = Dataset(args)
+    args.nClass = dataset['nClass']
 
-    # set model
-    model = create_model(args)
-    AL_method = active_learning_method(args)
+    for trial in range(args.num_trial):
+        print(f'>> TRIAL {trial}')
+        # dataloader for creating few labeled and lots of unlabeled data
 
-    # set federated optim algorithm
+        # set model and active learner
+        model = create_model(args)
+        AL_method = active_learning_method(args)
+
+        # Active Learning
+        AL_trainer = Trainer(model, AL_method, args)
+        AL_trainer.train()
