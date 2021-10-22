@@ -115,22 +115,25 @@ if __name__ == '__main__':
     args.nClass = dataset.nClass
     args.nTrain, args.nTest = dataset.nTrain, dataset.nTest
     dataset = dataset.dataset
-    print(f'Dataset: {args.dataset} Train {args.nTrain}')
+    print(f'Dataset: {args.dataset} Train {args.nTrain} = \
+            Labeled {args.data_size[0]} + Unlabeled {args.nTrain - args.data_size[0]}')
 
     # save result
     args.results = []
     for trial in range(args.num_trial):
-        print(f'>> TRIAL {trial}')
+        print(f'>> TRIAL {trial+1}')
 
-        # set active learner
+        # set active learner and dataloader
         AL_method = active_learning_method(args.al_method)(dataset, args)
-        # set dataloader for creating few labeled and lots of unlabeled data
 
         results = []
-        for round in range(len(args.data_size)-1):
+        for round in range(len(args.data_size)):
             nLabeled = args.data_size[round]
-            nQuery = args.data_size[round+1] - args.data_size[round]
-            print(f'>> round {round+1} Labeled {nLabeled} Query {nQuery}')
+            if round < len(args.data_size) - 1:
+                nQuery = args.data_size[round+1] - args.data_size[round]
+                print(f'>> round {round+1} Labeled {nLabeled} Query {nQuery}')
+            else:
+                print(f'>> round {round+1} Labeled {nLabeled}')
 
             # set model
             model = create_model(args)
@@ -143,14 +146,15 @@ if __name__ == '__main__':
             test_acc = trainer.test()
 
             ## query
-            labeled_indices, unlabeled_indices = AL_method.query(nQuery, trainer.model)
+            if round < len(args.data_size) - 1:
+                labeled_indices, unlabeled_indices = AL_method.query(nQuery, trainer.model)
 
             ## save results
             results.append([nLabeled, test_acc])
 
         args.results.append(results)
 
-    table = wandb.Table(data=torch.mean(torch.tensor(args.results), dim=1),
+    table = wandb.Table(data=torch.mean(torch.tensor(args.results), dim=1).tolist(),
                         columns=['nLabeled', 'TestAcc'])
     wandb.log({'acc plot': wandb.plot.line(table, 'nLabeled', 'TestAcc',
                                            title=f'mean TestAcc on {args.dataset}')})

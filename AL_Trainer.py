@@ -48,7 +48,7 @@ class Trainer:
 
             for epoch in range(self.num_epoch):
                 train_acc = self.train_epoch(epoch)
-        
+
         return train_acc
 
     def train_epoch(self, epoch):
