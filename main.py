@@ -5,13 +5,13 @@ References:
     https://github.com/ej0cl6/deep-active-learning
     https://github.com/Mephisto405/Learning-Loss-for-Active-Learning
 '''
-import os
+import sys
+
 import wandb
 import argparse
 import torch
 
 from model import mlp, resnet, lossnet
-from AL_Trainer import Trainer
 from data.dataset import Dataset
 
 
@@ -33,7 +33,7 @@ def get_args():
 
     parser.add_argument('--batch_size','-b', type=int, default=30, help='Batch size used for training only')
     parser.add_argument('--data_size', help='number of points at each round', type=list,
-                        default=[600,800,1000,2000,3000,4000,5000,6000,7000,8000,9000,10000,11000,12000,13000,14000,15000])
+                        default=[600,800,1000,2000])#,3000,4000,5000,6000,7000,8000,9000,10000,11000,12000,13000,14000,15000])
 
     parser.add_argument('--optimizer', type=str, default='sgd', choices=['sgd', 'adam'], help='optimizer')
     parser.add_argument('--lr', type=float, default=1e-2, help='learning rate')
@@ -57,16 +57,10 @@ def get_args():
 
 
 def create_model(args):
-    mlp_model = mlp.MLP(num_classes=args.nClass, al_method=args.al_method).to(args.device)
-    resnet_model = resnet.ResNet18(num_classes=args.nClass).to(args.device)
-
-    if args.al_method == 'learningloss':
-        return {'backbone': mlp_model if args.use_features else resnet_model,
-                'module': lossnet.LossNet().to(args.device)}
-    elif args.use_features:
-        return mlp_model
+    if args.use_features:
+        return mlp.MLP(num_classes=args.nClass, al_method=args.al_method).to(args.device)
     else:
-        return resnet_model
+        return resnet.ResNet18(num_classes=args.nClass).to(args.device)
 
 def active_learning_method(al_method):
     if al_method == 'random':
@@ -91,6 +85,14 @@ def active_learning_method(al_method):
         return TAVAAL
     else:
         return 1
+
+def trainer_method(al_method):
+    if al_method == 'learningloss':
+        from trainer.trainer_ll import Trainer
+    else:
+        from trainer.trainer import Trainer
+    return Trainer
+
 
 
 dataset_name = {'CIFAR10': 'CIFAR10', 'CIFAR100': 'CIFAR100',
@@ -123,14 +125,14 @@ if __name__ == '__main__':
 
     # save results
     table = wandb.Table(columns=['Trial','nLabeled', 'TestAcc'])
-
+    results = []
     for trial in range(args.num_trial):
         print(f'>> TRIAL {trial+1}')
 
         # set active learner and dataloader
         AL_method = active_learning_method(args.al_method)(dataset, args)
 
-        results = []
+        results_trial = []
         for round in range(len(args.data_size)):
             nLabeled = args.data_size[round]
             if round < len(args.data_size) - 1:
@@ -144,7 +146,7 @@ if __name__ == '__main__':
 
             # Active Learning
             ## train
-            trainer = Trainer(model, AL_method.dataloaders, args)
+            trainer = trainer_method(args.al_method)(model, AL_method.dataloaders, args)
             train_acc = trainer.train()
             ## test
             test_acc = trainer.test()
@@ -154,16 +156,16 @@ if __name__ == '__main__':
                 labeled_indices, unlabeled_indices = AL_method.query(nQuery, trainer.model)
 
             ## save results
-            results.append(test_acc)
+            results_trial.append(test_acc)
             table.add_data(trial, nLabeled, test_acc)
 
             wandb.log({
                 f'Test/Acc-{trial+1}': test_acc
             })
 
-        args.results.append(results)
+        results.append(results_trial)
 
-    for acc in torch.mean(torch.tensor(args.results), dim=0).tolist():
+    for acc in torch.mean(torch.tensor(results), dim=0).tolist():
         wandb.log({
             'Result/meanTestAcc': acc
         })
