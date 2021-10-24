@@ -1,4 +1,4 @@
-# Active-Learning-Baselines
+# Active-Learning-baselines
 An unofficial implementation of Active Learning baseline models in PyTorch
 
 References:
