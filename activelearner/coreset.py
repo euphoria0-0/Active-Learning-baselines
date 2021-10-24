@@ -45,4 +45,4 @@ class CoreSet(ActiveLearner):
                 min_dist[j] = min(min_dist[j], dist_new_ctr[j, 0])
 
         # update query data
-        self.update(self.unlabeled_indices[query_indices])
+        self.update(np.array(self.unlabeled_indices)[query_indices].tolist())
