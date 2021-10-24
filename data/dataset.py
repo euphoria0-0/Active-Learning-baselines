@@ -6,7 +6,7 @@ from torch.utils.data import TensorDataset, Subset
 import torchvision.transforms as T
 import torchvision.datasets as D
 import random
-
+from copy import deepcopy
 
 class Dataset:
     def __init__(self, args, pretrained=True):
@@ -38,12 +38,19 @@ class Dataset:
 
         self.dataset = {}
         self._getData()
+        if self.al_method == 'vaal' and self.use_features:
+            self.dataset_ftrs = deepcopy(self.dataset)
+            self.use_features = False
+            self.pretrained = False
+            self._getData()
+            self.dataset = [self.dataset_ftrs, self.dataset]
 
 
     def _getData(self):
         if self.use_features:
             self._get_features_data()
         else:
+            self._data_transform()
             if self.data == 'CIFAR10':
                 self.dataset['train'] = D.CIFAR10(self.data_dir+'cifar10', train=True, transform=self.train_transform)
                 self.dataset['unlabeled'] = D.CIFAR10(self.data_dir+'cifar10', train=True, transform=self.test_transform)
