@@ -5,8 +5,6 @@ References:
     https://github.com/ej0cl6/deep-active-learning
     https://github.com/Mephisto405/Learning-Loss-for-Active-Learning
 '''
-import sys
-
 import wandb
 import argparse
 import torch
@@ -21,7 +19,7 @@ def get_args():
     parser.add_argument('--gpu_id', type=int, default=0, help='gpu cuda index')
 
     parser.add_argument('--al_method','-AL', type=str, default='random',
-                        choices=['random','learningloss','coreset','badge','ws','vaal'])
+                        choices=['random','learningloss','coreset','badge','vaal','ws','batchbald','svp','seqgcn','tavaal'])
 
     parser.add_argument('--dataset', help='dataset', type=str, default='CIFAR10')
     parser.add_argument('--data_dir', help='data path', type=str, default='D:/data/img_clf/')
@@ -66,6 +64,9 @@ def get_args():
     args = parser.parse_args()
     return args
 
+dataset_name = {'CIFAR10': 'CIFAR10', 'CIFAR100': 'CIFAR100',
+                'FASHIONMNIST': 'FashionMNIST', 'CALTECH256': 'Caltech256'}
+
 
 def active_learning_method(al_method):
     if al_method == 'random':
@@ -85,11 +86,13 @@ def active_learning_method(al_method):
         return VAAL
     elif al_method == 'ws':
         return WS
-    elif al_method == 'Proxy':
+    elif al_method == 'batchbald':
+        return BatchBALD
+    elif al_method == 'svp':
         return SelectionProxy
-    elif al_method == 'SeqGCN':
+    elif al_method == 'seqgcn':
         return SequentialGCN
-    elif al_method == 'TAVAAL':
+    elif al_method == 'tavaal':
         return TAVAAL
     else:
         return 1
@@ -108,11 +111,6 @@ def trainer_method(al_method):
     else:
         from trainer.trainer import Trainer
     return Trainer
-
-
-
-dataset_name = {'CIFAR10': 'CIFAR10', 'CIFAR100': 'CIFAR100',
-                'FASHIONMNIST': 'FashionMNIST', 'CALTECH256': 'Caltech256'}
 
 
 if __name__ == '__main__':
@@ -144,7 +142,7 @@ if __name__ == '__main__':
     print(f'Train {args.nTrain} = Labeled {args.data_size[0]} + Unlabeled {args.nTrain - args.data_size[0]}')
 
     for trial in range(args.num_trial):
-        print(f'>> TRIAL {trial+1}/{args.num_trial}')
+        print(f'>> TRIAL {trial + 1}/{args.num_trial}')
 
         # set active learner and dataloader
         AL_method = active_learning_method(args.al_method)(dataset, args)
@@ -153,10 +151,10 @@ if __name__ == '__main__':
         for round in range(len(args.data_size)):
             nLabeled = args.data_size[round]
             if round < len(args.data_size) - 1:
-                nQuery = args.data_size[round+1] - args.data_size[round]
-                print(f'> round {round+1}/{len(args.data_size)} Labeled {nLabeled} Query {nQuery}')
+                nQuery = args.data_size[round + 1] - args.data_size[round]
+                print(f'> round {round + 1}/{len(args.data_size)} Labeled {nLabeled} Query {nQuery}')
             else:
-                print(f'> round {round+1}/{len(args.data_size)} Labeled {nLabeled}')
+                print(f'> round {round + 1}/{len(args.data_size)} Labeled {nLabeled}')
 
             # set model
             model = create_model(args)
@@ -177,7 +175,7 @@ if __name__ == '__main__':
             table.add_data(trial, nLabeled, test_acc)
 
             wandb.log({
-                f'Test/Acc-{trial+1}': test_acc
+                f'Test/Acc-{trial + 1}': test_acc
             })
 
         results.append(results_trial)

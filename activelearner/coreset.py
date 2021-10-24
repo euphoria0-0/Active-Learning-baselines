@@ -16,10 +16,11 @@ from data.dataset import Dataset_idx
 class CoreSet(ActiveLearner):
     def __init__(self, dataset, args):
         super().__init__(dataset, args)
+
+    def query(self, nQuery, model):
         self.dataloaders['unlabeled'] = DataLoader(Dataset_idx(self.dataset['unlabeled']),
                                                    batch_size=self.batch_size, pin_memory=True, shuffle=False)
 
-    def query(self, nQuery, model):
         # get embedding
         model.eval()
         embedding = np.zeros([self.nTrain, model.get_embedding_dim()])

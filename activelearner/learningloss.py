@@ -26,7 +26,7 @@ class LearningLoss(ActiveLearner):
 
         uncertainty = torch.tensor([])
         with torch.no_grad():
-            for (inputs, _) in unlabeled_loader:
+            for (inputs, _, _) in unlabeled_loader:
                 inputs = inputs.to(self.device)
 
                 scores, features = model['backbone'](inputs)

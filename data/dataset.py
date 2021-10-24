@@ -84,6 +84,10 @@ class Dataset:
                 self.dataset['test'] = Subset(test_data, test_indices)
                 self.dataset['label'] = [x[1] for idx, x in enumerate(train_data.imgs) if idx in train_indices]
 
+        self.dataset['train'] = Dataset_idx(self.dataset['train'])
+        self.dataset['unlabeled'] = Dataset_idx(self.dataset['unlabeled'])
+        self.dataset['test'] = Dataset_idx(self.dataset['test'])
+
 
     def _get_features_data(self, combine=True):
         # load data
@@ -114,6 +118,9 @@ class Dataset:
                 add_transform = [T.RandomHorizontalFlip()]
                 if self.pretrained:
                     add_transform.insert(0, T.Resize(224))
+            elif self.al_method == 'ws':
+                add_transform = [T.RandomCrop(size=32, padding=4),
+                                 T.RandomHorizontalFlip()]
             else:
                 add_transform = []
 
@@ -156,15 +163,6 @@ class Dataset:
         self.test_transform = T.Compose(base_transform)
         self.train_transform = T.Compose(add_transform + base_transform)
 
-
-    #def __getitem__(self, index, phase='train'):
-    #    if isinstance(index, np.float64):
-    #        index = index.astype(np.int64)
-    #    data, target = self.dataset[phase][index]
-    #    return data, target, index
-
-    #def __len__(self, phase='train'):
-    #    return len(self.dataset[phase])
 
 
 class Dataset_idx:

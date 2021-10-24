@@ -42,7 +42,7 @@ class Trainer:
     def train_epoch(self, epoch):
         train_loss, correct, total = 0., 0, 0
 
-        for input, labels in self.dataloaders['train']:
+        for input, labels, _ in self.dataloaders['train']:
             input, labels = input.to(self.device), labels.to(self.device)
             self.optimizer.zero_grad()
             output, _ = self.model(input)
@@ -74,7 +74,7 @@ class Trainer:
 
         with torch.no_grad():
             test_loss, correct, total = 0., 0, 0
-            for input, labels in self.dataloaders[phase]:
+            for input, labels, _ in self.dataloaders[phase]:
                 input, labels = input.to(self.device), labels.to(self.device)
                 output, _ = self.model(input)
                 #loss = self.criterion(output, labels.long())

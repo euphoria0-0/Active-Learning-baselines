@@ -34,5 +34,5 @@ class VAAL(ActiveLearner):
         _, querry_indices = torch.topk(all_preds, nQuery)
         query_indices = torch.tensor(all_indices)[querry_indices].tolist()
 
-        #self.update(query_indices)
+        self.update(query_indices)
 
