@@ -86,6 +86,7 @@ def active_learning_method(al_method):
         from activelearner.vaal import VAAL
         return VAAL
     elif al_method == 'ws':
+        from activelearner.ws import WS
         return WS
     elif al_method == 'batchbald':
         return BatchBALD
