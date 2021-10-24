@@ -1,3 +1,7 @@
+'''
+Reference:
+    https://github.com/ej0cl6/deep-active-learning
+'''
 import numpy as np
 import torch
 from torch.autograd import Variable

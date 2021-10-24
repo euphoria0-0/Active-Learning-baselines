@@ -1,3 +1,7 @@
+'''
+Reference:
+    https://github.com/Mephisto405/Learning-Loss-for-Active-Learning
+'''
 import torch
 import numpy as np
 from torch.utils.data import DataLoader
@@ -14,15 +18,15 @@ class LearningLoss(ActiveLearner):
 
     def query(self, nQuery, model):
         subset = np.random.choice(self.unlabeled_indices, self.subset, replace=False)
-        self.dataloaders['unlabeled'] = DataLoader(self.dataset['unlabeled'], batch_size=self.batch_size,
-                                                   sampler=SubsetRandomSampler(subset),
-                                                   pin_memory=True, shuffle=False)
+        unlabeled_loader = DataLoader(self.dataset['unlabeled'], batch_size=self.batch_size,
+                                      sampler=SubsetRandomSampler(subset),
+                                      pin_memory=True, shuffle=False)
         model['backbone'].eval()
         model['module'].eval()
 
         uncertainty = torch.tensor([])
         with torch.no_grad():
-            for (inputs, _) in self.dataloaders['unlabeled']:
+            for (inputs, _) in unlabeled_loader:
                 inputs = inputs.to(self.device)
 
                 scores, features = model['backbone'](inputs)
