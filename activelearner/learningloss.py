@@ -6,7 +6,7 @@ import torch
 import numpy as np
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
-from activelearner.active_learner import ActiveLearner
+from .active_learner import ActiveLearner
 
 
 class LearningLoss(ActiveLearner):

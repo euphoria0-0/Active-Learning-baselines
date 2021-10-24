@@ -1,5 +1,5 @@
 import numpy as np
-from activelearner.active_learner import ActiveLearner
+from .active_learner import ActiveLearner
 
 
 class RandomSampling(ActiveLearner):
