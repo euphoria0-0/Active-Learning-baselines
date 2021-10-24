@@ -132,6 +132,10 @@ if __name__ == '__main__':
     torch.cuda.set_device(args.device)  # change allocation of current GPU
     print(f'Current cuda device: {torch.cuda.current_device()}')
 
+    # save results
+    table = wandb.Table(columns=['Trial', 'nLabeled', 'TestAcc'])
+    results = []
+
     # set data
     dataset = Dataset(args)
     args.nClass, args.nTrain, args.nTest = dataset.nClass, dataset.nTrain, dataset.nTest
@@ -139,9 +143,6 @@ if __name__ == '__main__':
     print(f'Dataset: {args.dataset}')
     print(f'Train {args.nTrain} = Labeled {args.data_size[0]} + Unlabeled {args.nTrain - args.data_size[0]}')
 
-    # save results
-    table = wandb.Table(columns=['Trial', 'nLabeled', 'TestAcc'])
-    results = []
     for trial in range(args.num_trial):
         print(f'>> TRIAL {trial+1}/{args.num_trial}')
 

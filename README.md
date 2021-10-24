@@ -6,6 +6,12 @@ An unofficial implementation of Active Learning baseline models in PyTorch
 ## Usage
 ```python main.py -AL {AL method you want}```
 
+- ```AL``` method
+    - ```random```
+    - ```learningloss```
+    - ```coreset```
+    - ```badge```
+    - ```vaal```
 
 ## References:
 1. https://github.com/ej0cl6/deep-active-learning

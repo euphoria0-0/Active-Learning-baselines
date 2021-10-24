@@ -106,7 +106,7 @@ class Trainer:
                     best_vae = deepcopy(self.vae)
                     best_discriminator = deepcopy(self.discriminator)
 
-                if iter_count % 30000 == 0:
+                if iter_count % 30000 == 0 or iter_count == self.args.train_iterations - 1:
                     print('\ncurrent step: {} acc: {:.4f} best acc: {:.4f}'.format(iter_count, train_acc, best_acc))
 
         self.task_model = best_task_model
