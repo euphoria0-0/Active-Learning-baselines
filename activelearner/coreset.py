@@ -10,7 +10,6 @@ from sklearn.metrics import pairwise_distances
 from tqdm import tqdm
 
 from .active_learner import ActiveLearner
-from data.dataset import Dataset_idx
 
 
 class CoreSet(ActiveLearner):
@@ -18,9 +17,6 @@ class CoreSet(ActiveLearner):
         super().__init__(dataset, args)
 
     def query(self, nQuery, model):
-        self.dataloaders['unlabeled'] = DataLoader(Dataset_idx(self.dataset['unlabeled']),
-                                                   batch_size=self.batch_size, pin_memory=True, shuffle=False)
-
         # get embedding
         model.eval()
         embedding = np.zeros([self.nTrain, model.get_embedding_dim()])

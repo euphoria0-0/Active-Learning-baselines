@@ -14,7 +14,6 @@ from scipy import stats
 from sklearn.metrics import pairwise_distances
 
 from .active_learner import ActiveLearner
-from data.dataset import Dataset_idx
 
 
 class BADGE(ActiveLearner):
@@ -27,7 +26,7 @@ class BADGE(ActiveLearner):
         embDim = model.get_embedding_dim()
         model.eval()
 
-        self.dataloaders['unlabeled'] = DataLoader(Dataset_idx(Subset(self.dataset['unlabeled'], self.unlabeled_indices)),
+        self.dataloaders['unlabeled'] = DataLoader(Subset(self.dataset['unlabeled'], self.unlabeled_indices),
                                                    batch_size=self.batch_size, pin_memory=True, shuffle=False)
 
         embedding = np.zeros([len(self.unlabeled_indices), embDim * self.nClass])

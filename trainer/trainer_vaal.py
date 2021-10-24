@@ -2,8 +2,6 @@ import sys
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
-from torch.utils.data.sampler import SubsetRandomSampler
 #from tqdm import tqdm
 from model import VAE
 from copy import deepcopy

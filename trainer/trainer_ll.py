@@ -101,10 +101,8 @@ class Trainer:
             for input, labels, _ in self.dataloaders[phase]:
                 input, labels = input.to(self.device), labels.to(self.device)
                 output, _ = self.model['backbone'](input)
-                #loss = self.criterion(output, labels.long())
                 _, preds = torch.max(output.data, 1)
 
-                #test_loss += loss.item() * input.size(0)
                 correct += preds.eq(labels).sum().cpu().data.numpy()
                 total += input.size(0)
 
