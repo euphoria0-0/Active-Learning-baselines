@@ -20,7 +20,7 @@ class Trainer:
 
         # optimizer
         if args.optimizer == 'sgd':
-            self.optimizer = optim.SGD(self.model.parameters(), lr=args.lr, weight_decay=args.wdecay)
+            self.optimizer = optim.SGD(self.model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.wdecay)
         else:
             self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr, weight_decay=args.wdecay)
 
