@@ -10,4 +10,3 @@ class RandomSampling(ActiveLearner):
         query_indices = np.random.choice(self.unlabeled_indices, nQuery, replace=False).tolist()
         self.labeled_indices += query_indices
         self.unlabeled_indices = list(set(self.unlabeled_indices) - set(query_indices))
-        return self.labeled_indices, self.unlabeled_indices

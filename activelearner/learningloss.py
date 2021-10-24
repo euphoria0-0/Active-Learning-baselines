@@ -36,4 +36,3 @@ class LearningLoss(ActiveLearner):
 
         query_indices = subset[arg].tolist()
         self.update(query_indices)
-        return self.labeled_indices, self.unlabeled_indices

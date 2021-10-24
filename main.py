@@ -33,7 +33,7 @@ def get_args():
 
     parser.add_argument('--batch_size','-b', type=int, default=30, help='Batch size used for training only')
     parser.add_argument('--data_size', help='number of points at each round', type=list,
-                        default=[600,800,1000,2000,3000,4000,5000,6000,7000,8000,9000,10000,11000,12000,13000,14000,15000])
+                        default=[600,800,1000,2000])#,3000,4000,5000,6000,7000,8000,9000,10000,11000,12000,13000,14000,15000])
 
     parser.add_argument('--optimizer', type=str, default='sgd', choices=['sgd', 'adam'], help='optimizer')
     parser.add_argument('--lr', type=float, default=1e-2, help='learning rate')
@@ -75,6 +75,7 @@ def active_learning_method(al_method):
         from activelearner.coreset import CoreSet
         return CoreSet
     elif al_method == 'badge':
+        from activelearner.badge import BADGE
         return BADGE
     elif al_method == 'ws':
         return WS
@@ -131,7 +132,7 @@ if __name__ == '__main__':
     table = wandb.Table(columns=['Trial','nLabeled', 'TestAcc'])
     results = []
     for trial in range(args.num_trial):
-        print(f'>> TRIAL {trial+1}')
+        print(f'>> TRIAL {trial+1}/{args.num_trial}')
 
         # set active learner and dataloader
         AL_method = active_learning_method(args.al_method)(dataset, args)

@@ -1,11 +1,12 @@
 import numpy as np
 import torch
 from torch.autograd import Variable
-from activelearner.active_learner import ActiveLearner
 from torch.utils.data import DataLoader
-from data.dataset import Dataset_idx
 from sklearn.metrics import pairwise_distances
 from tqdm import tqdm
+
+from .active_learner import ActiveLearner
+from data.dataset import Dataset_idx
 
 
 class CoreSet(ActiveLearner):
@@ -44,6 +45,4 @@ class CoreSet(ActiveLearner):
                 min_dist[j] = min(min_dist[j], dist_new_ctr[j, 0])
 
         # update query data
-        self.update(query_indices)
-        return self.labeled_indices, self.unlabeled_indices
-
+        self.update(self.unlabeled_indices[query_indices])
