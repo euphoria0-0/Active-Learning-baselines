@@ -27,8 +27,10 @@ class Trainer:
         # learning rate scheduler
         if args.lr_scheduler == 'multistep':
             self.lr_scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=[args.milestone])
-        else:
+        elif args.lr_scheduler == 'step':
             self.lr_scheduler = optim.lr_scheduler.StepLR(self.optimizer, step_size=10, gamma=0.9)
+        else: # equal to None
+            self.lr_scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=[args.num_epoch])
 
 
     def train(self):

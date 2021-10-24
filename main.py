@@ -38,7 +38,7 @@ def get_args():
     parser.add_argument('--optimizer', type=str, default='sgd', choices=['sgd', 'adam'], help='optimizer')
     parser.add_argument('--lr', type=float, default=1e-2, help='learning rate')
     parser.add_argument('--wdecay', type=float, default=5e-4, help='weight decay')
-    parser.add_argument('--lr_scheduler', type=str, default='multistep', choices=['multistep', 'step'],
+    parser.add_argument('--lr_scheduler', type=str, default='multistep', choices=['multistep', 'step', None],
                         help='optimizer')
     parser.add_argument('--milestone', type=int, default=160, help='number of acquisition')
 
