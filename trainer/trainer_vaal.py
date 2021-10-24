@@ -7,7 +7,6 @@ from model import VAE
 from copy import deepcopy
 
 
-
 def read_data(dataloader):
     while True:
         for img, label, _ in dataloader:

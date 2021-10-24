@@ -1,3 +1,7 @@
+'''
+Reference:
+    https://github.com/sinhasam/vaal
+'''
 import torch
 from .active_learner import ActiveLearner
 

@@ -44,6 +44,7 @@ def get_args():
                         help='After 120 epochs, stop the gradient from the loss prediction module propagated to the target model')
     parser.add_argument('--margin', type=float, default=1.0, help='MARGIN')
     parser.add_argument('--weights','-w', type=float, default=0.0, help='weight')
+    parser.add_argument('--subset', type=int, default=10000, help='subset for learning loss')
 
     parser.add_argument('--latent_dim', type=int, default=32, help='The dimensionality of the VAE latent dimension')
     parser.add_argument('--beta', type=float, default=1, help='Hyperparameter for training. The parameter for VAE')
@@ -54,7 +55,7 @@ def get_args():
     parser.add_argument('--adversary_param', type=float, default=1,
                         help='Hyperparameter for training. lambda2 in the paper')
 
-    parser.add_argument('--subset', type=int, default=10000, help='subset for learning loss')
+    parser.add_argument('--sampling', type=str, default='descending', help='descending | random')
 
     parser.add_argument('--fix_seed', action='store_true', default=False, help='fix seed for reproducible')
     parser.add_argument('--seed', type=int, default=0, help='seed number')

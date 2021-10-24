@@ -46,6 +46,7 @@ class ActiveLearner:
 
         if self.args.al_method == 'vaal' and self.args.use_features:
             self.dataloaders_ftrs = self._get_dataloaders(self.dataset_ftrs)
+            self.dataloaders = [self.dataloaders_ftrs, self.dataloaders_imgs]
 
 
     def get_current_dataloaders(self):
