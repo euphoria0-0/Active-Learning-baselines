@@ -43,7 +43,7 @@ class Trainer:
         for input, labels in self.dataloaders['train']:
             input, labels = input.to(self.device), labels.to(self.device)
             self.optimizer.zero_grad()
-            output = self.model(input)
+            output, _ = self.model(input)
             loss = self.criterion(output, labels.long())
             _, preds = torch.max(output.data, 1)
 
@@ -74,7 +74,7 @@ class Trainer:
             test_loss, correct, total = 0., 0, 0
             for input, labels in self.dataloaders[phase]:
                 input, labels = input.to(self.device), labels.to(self.device)
-                output = self.model(input)
+                output, _ = self.model(input)
                 #loss = self.criterion(output, labels.long())
                 _, preds = torch.max(output.data, 1)
 

@@ -13,7 +13,6 @@ class ActiveLearner:
         self._init_setting()
 
 
-
     def _init_setting(self):
         total_indices = np.arange(self.nTrain)
         self.labeled_indices = np.random.choice(total_indices, self.init_size, replace=False).tolist()
@@ -32,3 +31,11 @@ class ActiveLearner:
 
     def query(self, n, model):
         pass
+
+    def update(self, query_indices):
+        print(f'selected data: {sorted(query_indices)[:10]}')
+        self.labeled_indices += query_indices
+        self.unlabeled_indices = list(set(self.unlabeled_indices) - set(query_indices))
+
+        self.dataloaders['train'] = DataLoader(self.dataset['train'], batch_size=self.batch_size, pin_memory=True,
+                                               sampler=SubsetRandomSampler(self.labeled_indices))

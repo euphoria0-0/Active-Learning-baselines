@@ -18,10 +18,8 @@ class MLP(nn.Module):
         x = self.classifier(x3)
         if self.al_method == 'learningloss':
             return x, [x1, x2, x3]
-        elif self.al_method in ['badge', 'coreset']:
+        else: # badge, coreset
             return x, x3
-        else:
-            return x
 
     def get_embedding_dim(self):
         return self.embSize

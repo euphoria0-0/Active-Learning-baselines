@@ -35,9 +35,5 @@ class LearningLoss(ActiveLearner):
         arg = np.argsort(uncertainty.numpy())[-nQuery:]
 
         query_indices = subset[arg].tolist()
-        self.labeled_indices += query_indices
-        self.unlabeled_indices = list(set(self.unlabeled_indices) - set(query_indices))
-
-        self.dataloaders['train'] = DataLoader(self.dataset['train'], batch_size=self.batch_size, pin_memory=True,
-                                               sampler=SubsetRandomSampler(self.labeled_indices))
+        self.update(query_indices)
         return self.labeled_indices, self.unlabeled_indices

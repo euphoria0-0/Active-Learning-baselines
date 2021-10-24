@@ -52,6 +52,8 @@ def get_args():
     parser.add_argument('--fix_seed', action='store_true', default=False, help='fix seed for reproducible')
     parser.add_argument('--seed', type=int, default=0, help='seed number')
 
+    parser.add_argument('--comment', type=str, default='', help='comment')
+
     args = parser.parse_args()
     return args
 
@@ -70,6 +72,7 @@ def active_learning_method(al_method):
         from activelearner.learningloss import LearningLoss
         return LearningLoss
     elif al_method == 'coreset':
+        from activelearner.coreset import CoreSet
         return CoreSet
     elif al_method == 'badge':
         return BADGE
@@ -104,10 +107,11 @@ if __name__ == '__main__':
     args = get_args()
     args.dataset = dataset_name[args.dataset.upper()]
 
-    tmp = '-ftrs' if args.use_features else ''
+    ftrs = '-ftrs' if args.use_features else ''
+    comm = '-'+args.comment if args.comment != '' else ''
     wandb.init(
-        project=f'AL-{args.dataset}{tmp}',
-        name=f"{args.al_method}",#-{args.optimizer},{args.num_epoch},{args.lr}",
+        project=f'AL-{args.dataset}{ftrs}',
+        name=f"{args.al_method}{comm}",#-{args.optimizer},{args.num_epoch},{args.lr}",
         config=args
     )
 

@@ -160,5 +160,18 @@ class Dataset:
     #    return len(self.dataset[phase])
 
 
+class Dataset_idx:
+    def __init__(self, dataset):
+        self.dataset = dataset
+
+    def __getitem__(self, index):
+        if isinstance(index, np.float64):
+            index = index.astype(np.int64)
+        data, target = self.dataset[index]
+        return data, target, index
+
+    def __len__(self):
+       return len(self.dataset)
+
 
 

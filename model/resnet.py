@@ -95,7 +95,7 @@ class ResNet(nn.Module):
         if self.ll:
             return out, [out1, out2, out3, out4]
         else:
-            return out
+            return out, _
 
 
 def ResNet18(num_classes = 10, ll=False):
