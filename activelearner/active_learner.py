@@ -33,7 +33,7 @@ class ActiveLearner:
                                 sampler=SubsetRandomSampler(self.labeled_indices)),
             'unlabeled': DataLoader(dataset['unlabeled'], **self.loader_args,
                                     sampler=SubsetRandomSampler(self.unlabeled_indices)),
-            'test': DataLoader(dataset['test'], batch_size=self.args.batch_size, pin_memory=True, shuffle=True)
+            'test': DataLoader(dataset['test'], batch_size=1000, pin_memory=True, shuffle=True)
         }
         return dataloaders
 

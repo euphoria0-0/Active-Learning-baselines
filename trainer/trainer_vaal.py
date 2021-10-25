@@ -1,3 +1,7 @@
+'''
+Reference:
+    https://github.com/sinhasam/vaal
+'''
 import sys
 import torch
 import torch.nn as nn
@@ -29,12 +33,8 @@ class Trainer:
 
         # create model
         self.task_model = model
-        if args.dataset == 'FashionMNIST':
-            self.vae = VAE.VAE(args.latent_dim, nc=1).to(self.device)
-        elif args.dataset == 'Caltech256':
-            self.vae = VAE.VAE_Caltech(args.latent_dim).to(self.device)
-        else:
-            self.vae = VAE.VAE(args.latent_dim).to(self.device)
+        nChannel = 1 if args.dataset == 'FashionMNIST' else 3
+        self.vae = VAE.VAE_224(args.latent_dim, nc=nChannel).to(self.device)
         self.discriminator = VAE.Discriminator(args.latent_dim).to(self.device)
 
         # loss function
@@ -92,6 +92,8 @@ class Trainer:
                 self._discriminator_model_train_step(labeled_imgs, unlabeled_imgs)
                 if count < (self.args.num_adv_steps - 1):
                     labeled_imgs, _, unlabeled_imgs = self._next_imgs()
+
+            torch.cuda.empty_cache()
 
             sys.stdout.write(
                 '\rtrain iter {}/{} | task loss {:.4f} vae loss {:.4f} discriminator loss {:.4f}'.format(
@@ -169,6 +171,8 @@ class Trainer:
         self.optim_task_model.zero_grad()
         self.task_loss.backward()
         self.optim_task_model.step()
+
+        torch.cuda.empty_cache()
         return correct / total
 
     def _vae_model_train_step(self, input, unlabeled_input):
@@ -195,6 +199,8 @@ class Trainer:
         self.total_vae_loss.backward()
         self.optim_vae.step()
 
+        torch.cuda.empty_cache()
+
     def _discriminator_model_train_step(self, input, unlabeled_input):
         with torch.no_grad():
             _, _, mu, _ = self.vae(input)
@@ -212,3 +218,5 @@ class Trainer:
         self.optim_discriminator.zero_grad()
         self.dsc_loss.backward()
         self.optim_discriminator.step()
+
+        torch.cuda.empty_cache()
