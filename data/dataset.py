@@ -70,10 +70,23 @@ class Dataset:
                 self.dataset['label'] = self.dataset['train'].targets
 
             elif self.data == 'Caltech256':
-                indices = [*range(self.nTrain + self.nTest)]
-                random.seed(0)
-                random.shuffle(indices)
-                train_indices, test_indices = indices[:self.nTrain], indices[self.nTrain:]
+                train_idx_file = os.path.join(self.data_dir, 'ExtractedFeatures/Caltech256_train_idx.txt')
+                test_idx_file = os.path.join(self.data_dir, 'ExtractedFeatures/Caltech256_test_idx.txt')
+
+                if os.path.exists(train_idx_file):
+                    with open(train_idx_file, 'r') as f:
+                        train_indices = f.readlines()
+                    train_indices = list(map(int, train_indices[0].split(',')[:-1]))
+                    with open(test_idx_file, 'r') as f:
+                        test_indices = f.readlines()
+                    test_indices = list(map(int, test_indices[0].split(',')[:-1]))
+                    self._data_transform(False)
+                else:
+                    indices = [*range(self.nTrain + self.nTest)]
+                    random.seed(0)
+                    random.shuffle(indices)
+                    train_indices, test_indices = indices[:self.nTrain], indices[self.nTrain:]
+                    self._data_transform(True)
 
                 train_data = D.ImageFolder(root=self.data_dir+'Caltech256', transform=self.train_transform)
                 unlabeled_data = D.ImageFolder(root=self.data_dir+'Caltech256', transform=self.test_transform)
@@ -108,7 +121,7 @@ class Dataset:
         return self.dataset
 
 
-    def _data_transform(self):
+    def _data_transform(self, random=False):
         if self.data == 'CIFAR10':
             mean, std = [0.4914, 0.4822, 0.4465], [0.2470, 0.2435, 0.2616]
             if self.al_method == 'learningloss':
@@ -149,7 +162,10 @@ class Dataset:
                 add_transform = [T.Pad(2)]
 
         elif self.data == 'Caltech256':
-            mean, std = [0.5414, 0.5153, 0.4832], [0.305, 0.3009, 0.3134]
+            if random:
+                mean, std = [0.5414, 0.5153, 0.4832], [0.3050, 0.3009, 0.3134]
+            else:
+                mean, std = [0.5511, 0.5335, 0.5052], [0.3151, 0.3116, 0.3257]
             if self.al_method == 'learningloss':
                 add_transform = [T.RandomHorizontalFlip(),
                                  T.RandomCrop(size=224)]
@@ -157,9 +173,9 @@ class Dataset:
                 add_transform = [T.RandomResizedCrop(224),
                                  T.RandomHorizontalFlip()]
             else:
-                add_transform = [T.Resize(224)]
+                add_transform = []
 
-        base_transform = [T.ToTensor(), T.Normalize(mean, std)]
+        base_transform = [T.Resize((224,224)), T.ToTensor(), T.Normalize(mean, std)]
         self.test_transform = T.Compose(base_transform)
         self.train_transform = T.Compose(add_transform + base_transform)
 
