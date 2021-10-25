@@ -12,13 +12,18 @@ class VAAL(ActiveLearner):
 
 
     def query(self, nQuery, model):
+        if self.args.use_features:
+            unlabeled_loader = self.dataloaders['imgs']['unlabeled']
+        else:
+            unlabeled_loader = self.dataloaders['unlabeled']
+
         vae, discriminator = model
         vae, discriminator = vae.to(self.device), discriminator.to(self.device)
         vae.eval()
         discriminator.eval()
 
         all_preds, all_indices = [], []
-        for images, _, indices in self.dataloaders_imgs['unlabeled']:
+        for images, _, indices in unlabeled_loader:
             images = images.to(self.device)
 
             with torch.no_grad():

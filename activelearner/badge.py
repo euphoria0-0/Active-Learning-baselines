@@ -10,6 +10,7 @@ import torch
 import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.utils.data import DataLoader, Subset
+from torch.utils.data.sampler import SubsetRandomSampler
 from scipy import stats
 from sklearn.metrics import pairwise_distances
 
@@ -26,12 +27,12 @@ class BADGE(ActiveLearner):
         embDim = model.get_embedding_dim()
         model.eval()
 
-        self.dataloaders['unlabeled'] = DataLoader(Subset(self.dataset['unlabeled'], self.unlabeled_indices),
-                                                   batch_size=self.batch_size, pin_memory=True, shuffle=False)
+        unlabeled_dataset = Dataset_idx_(Subset(self.dataset['unlabeled'], self.unlabeled_indices))
+        unlabeled_loader = DataLoader(unlabeled_dataset, batch_size=self.batch_size, pin_memory=True, shuffle=False)
 
         embedding = np.zeros([len(self.unlabeled_indices), embDim * self.nClass])
         with torch.no_grad():
-            for input, labels, idxs in self.dataloaders['unlabeled']:
+            for input, labels, idxs in unlabeled_loader:
                 input, labels = Variable(input.to(self.device)), Variable(input.to(self.device))
                 cout, out = model(input)
                 out = out.data.cpu().numpy()
@@ -88,3 +89,17 @@ def init_centers(X, K):
     vgt = val[val > 1e-2]'''
     print()
     return indsAll
+
+
+class Dataset_idx_:
+    def __init__(self, dataset):
+        self.dataset = dataset
+
+    def __getitem__(self, index):
+        if isinstance(index, np.float64):
+            index = index.astype(np.int64)
+        data, target, _ = self.dataset[index]
+        return data, target, index
+
+    def __len__(self):
+       return len(self.dataset)

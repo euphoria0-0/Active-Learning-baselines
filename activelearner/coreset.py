@@ -17,11 +17,14 @@ class CoreSet(ActiveLearner):
         super().__init__(dataset, args)
 
     def query(self, nQuery, model):
+        unlabeled_loader = DataLoader(self.dataset['unlabeled'],
+                                      batch_size=self.batch_size, pin_memory=True, shuffle=False)
+
         # get embedding
         model.eval()
         embedding = np.zeros([self.nTrain, model.get_embedding_dim()])
         with torch.no_grad():
-            for input, labels, idxs in self.dataloaders['unlabeled']:
+            for input, labels, idxs in unlabeled_loader:
                 input, labels = Variable(input.to(self.device)), Variable(labels.to(self.device))
                 out, e1 = model(input)
                 embedding[idxs] = e1.data.cpu().data.numpy()

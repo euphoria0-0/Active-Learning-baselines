@@ -16,7 +16,11 @@ def read_data(dataloader):
 
 class Trainer:
     def __init__(self, model, dataloaders, args):
-        self.dataloaders_ftrs, self.dataloaders = dataloaders
+        if args.use_features:
+            self.dataloaders = dataloaders['imgs']
+            self.dataloaders_ftrs = dataloaders['ftrs']
+        else:
+            self.dataloaders = dataloaders
         self.device = args.device
         self.num_epoch = args.num_epoch
         self.batch_size = args.batch_size
@@ -208,12 +212,3 @@ class Trainer:
         self.optim_discriminator.zero_grad()
         self.dsc_loss.backward()
         self.optim_discriminator.step()
-
-
-
-
-
-
-
-
-
