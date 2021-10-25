@@ -28,7 +28,7 @@ class BADGE(ActiveLearner):
         model.eval()
 
         unlabeled_dataset = Dataset_idx_(Subset(self.dataset['unlabeled'], self.unlabeled_indices))
-        unlabeled_loader = DataLoader(unlabeled_dataset, batch_size=self.batch_size, pin_memory=True, shuffle=False)
+        unlabeled_loader = DataLoader(unlabeled_dataset, **self.loader_args)
 
         embedding = np.zeros([len(self.unlabeled_indices), embDim * self.nClass])
         with torch.no_grad():

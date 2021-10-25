@@ -18,8 +18,7 @@ class WS(ActiveLearner):
 		self.nClass = args.nClass
 
 	def query(self, nQuery, model):
-		self.dataloaders['unlabeled'] = DataLoader(self.dataset['unlabeled'], batch_size=self.batch_size,
-												   pin_memory=True, shuffle=False)
+		self.dataloaders['unlabeled'] = DataLoader(self.dataset['unlabeled'], **self.loader_args)
 
 		if self.norms is None:
 			self.norms = self.save_weight_distribution(model)

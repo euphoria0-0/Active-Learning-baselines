@@ -17,8 +17,7 @@ class CoreSet(ActiveLearner):
         super().__init__(dataset, args)
 
     def query(self, nQuery, model):
-        unlabeled_loader = DataLoader(self.dataset['unlabeled'],
-                                      batch_size=self.batch_size, pin_memory=True, shuffle=False)
+        unlabeled_loader = DataLoader(self.dataset['unlabeled'], **self.loader_args)
 
         # get embedding
         model.eval()

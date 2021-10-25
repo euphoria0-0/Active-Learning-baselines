@@ -13,14 +13,11 @@ class LearningLoss(ActiveLearner):
     def __init__(self, dataset, args):
         super().__init__(dataset, args)
         self.subset = args.subset
-        self.batch_size = args.batch_size
-
 
     def query(self, nQuery, model):
         subset = np.random.choice(self.unlabeled_indices, self.subset, replace=False)
-        unlabeled_loader = DataLoader(self.dataset['unlabeled'], batch_size=self.batch_size,
-                                      sampler=SubsetRandomSampler(subset),
-                                      pin_memory=True, shuffle=False)
+        unlabeled_loader = DataLoader(self.dataset['unlabeled'], **self.loader_args,
+                                      sampler=SubsetRandomSampler(subset))
         model['backbone'].eval()
         model['module'].eval()
 
